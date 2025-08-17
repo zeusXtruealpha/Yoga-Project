@@ -1,0 +1,8 @@
+Flask==3.0.0
+Flask-Cors==4.0.0
+numpy==1.26.0
+opencv-python-headless
+torch
+torchvision
+tensorflow
+# Add your model dependencies here

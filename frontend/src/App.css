@@ -1,0 +1,139 @@
+/* App.css */
+
+/* Global styles */
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+  color: #333;
+}
+
+/* App container */
+.app-container {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Header */
+.app-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.app-header h1 {
+  font-size: 2rem;
+  margin-bottom: 10px;
+  color: #222;
+}
+
+.app-header p {
+  font-size: 1rem;
+  color: #555;
+}
+
+/* Upload area */
+.upload-area {
+  border: 2px dashed #888;
+  border-radius: 12px;
+  padding: 50px 20px;
+  text-align: center;
+  cursor: pointer;
+  background: #fff;
+  transition: all 0.3s ease;
+}
+
+.upload-area:hover {
+  border-color: #555;
+  background: #f0f0f0;
+}
+
+.upload-area span {
+  font-size: 1.1rem;
+  color: #444;
+}
+
+/* Image preview */
+.image-preview {
+  position: relative;
+  display: inline-block;
+}
+
+.image-preview img {
+  max-width: 100%;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.remove-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #ff4d4d;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.3s ease;
+}
+
+.remove-btn:hover {
+  background: #e63b3b;
+}
+
+/* Buttons */
+.button-container {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.predict-btn {
+  flex: 1;
+  padding: 12px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.predict-btn:hover {
+  background: #0056b3;
+}
+
+.predict-btn.disabled {
+  background: #999;
+  cursor: not-allowed;
+}
+
+/* Result container */
+.result-container {
+  margin-top: 30px;
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.result-container h2 {
+  margin-top: 0;
+  color: #222;
+}
+
+.result-container ul {
+  list-style: disc inside;
+  margin: 10px 0 0;
+  padding: 0;
+}
+
+.result-container li {
+  margin: 5px 0;
+  color: #444;
+}
