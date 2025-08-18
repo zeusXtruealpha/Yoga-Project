@@ -73,6 +73,34 @@ app.post('/api/predict', upload.single('file'), async (req, res) => {
   }
 });
 
+// Preprocessing route
+app.post('/api/preprocess', upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    console.log(`[INFO] Received image for preprocessing: ${req.file.originalname} (${req.file.size} bytes)`);
+
+    const form = new FormData();
+    form.append('file', req.file.buffer, {
+      filename: req.file.originalname,
+      contentType: req.file.mimetype
+    });
+
+    console.log(">>> Forwarding to", `${FLASK_BASE}/preprocess`);
+
+    const response = await axios.post(`${FLASK_BASE}/preprocess`, form, {
+      headers: form.getHeaders()
+    });
+
+    res.json(response.data);
+  } catch (error) {
+    console.error('[ERROR] Preprocessing failed:', error.message);
+    res.status(500).json({ error: 'Preprocessing failed' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(` API server running on http://localhost:${PORT}`);
 });
