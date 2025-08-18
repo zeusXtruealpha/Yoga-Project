@@ -5,9 +5,13 @@ function App() {
   const [image, setImage] = useState(null);
   const [mood, setMood] = useState("");
   const [feedback, setFeedback] = useState([]);
+  const [processedImages, setProcessedImages] = useState(null);
+  const [preprocessingSteps, setPreprocessingSteps] = useState([]);
+  const [stepDetails, setStepDetails] = useState([]);
 
   const [loadingMood, setLoadingMood] = useState(false);
   const [loadingPerson, setLoadingPerson] = useState(false);
+  const [loadingPreprocess, setLoadingPreprocess] = useState(false);
 
   const fileInputRef = useRef(null);
 
@@ -20,6 +24,9 @@ function App() {
       setImage(event.target.result);
       setMood("");
       setFeedback([]);
+      setProcessedImages(null);
+      setPreprocessingSteps([]);
+      setStepDetails([]);
     };
     reader.readAsDataURL(file);
   };
@@ -60,6 +67,12 @@ function App() {
       const data = await uploadImageToNode("predict");
       console.log("✅ Mood detection result:", data);
       setMood(data.mood || "Unknown");
+      if (data.processed_images) {
+        setProcessedImages(data.processed_images);
+      }
+      if (data.step_details) {
+        setStepDetails(data.step_details);
+      }
     } catch (error) {
       console.error("❌ Mood detection failed:", error);
       alert("Mood detection failed: " + error.message);
@@ -82,11 +95,37 @@ function App() {
       } else {
         setFeedback(data.feedback || ["Aligned properly"]);
       }
+      if (data.processed_images) {
+        setProcessedImages(data.processed_images);
+      }
+      if (data.step_details) {
+        setStepDetails(data.step_details);
+      }
     } catch (error) {
       console.error("❌ Person detection failed:", error);
       alert("Person detection failed: " + error.message);
     } finally {
       setLoadingPerson(false);
+    }
+  };
+
+  const handlePreprocess = async () => {
+    if (!image) return;
+    setLoadingPreprocess(true);
+
+    try {
+      const data = await uploadImageToNode("preprocess");
+      console.log("✅ Preprocessing result:", data);
+      setProcessedImages(data.processed_images);
+      setPreprocessingSteps(data.precheck_feedback || []);
+      if (data.step_details) {
+        setStepDetails(data.step_details);
+      }
+    } catch (error) {
+      console.error("❌ Preprocessing failed:", error);
+      alert("Preprocessing failed: " + error.message);
+    } finally {
+      setLoadingPreprocess(false);
     }
   };
 
@@ -106,6 +145,9 @@ function App() {
                 setImage(null);
                 setMood("");
                 setFeedback([]);
+                setProcessedImages(null);
+                setPreprocessingSteps([]);
+                setStepDetails([]);
               }}
               className="remove-btn"
             >
@@ -144,6 +186,14 @@ function App() {
           >
             {loadingPerson ? "Checking..." : "Check Human Presence"}
           </button>
+
+          <button
+            onClick={handlePreprocess}
+            disabled={!image || loadingPreprocess}
+            className={`predict-btn ${!image || loadingPreprocess ? "disabled" : ""}`}
+          >
+            {loadingPreprocess ? "Processing..." : "View Preprocessing Steps"}
+          </button>
         </div>
 
         {mood && (
@@ -161,6 +211,35 @@ function App() {
                 <li key={idx}>{msg}</li>
               ))}
             </ul>
+          </div>
+        )}
+
+        {processedImages && stepDetails.length > 0 && (
+          <div className="result-container">
+            <h2>Preprocessing Steps</h2>
+            <div className="processed-images">
+              {stepDetails.map((step, idx) => (
+                <div key={idx} className="image-step">
+                  <h3>{step.step}</h3>
+                  <img 
+                    src={`data:image/${step.image_key === 'background_removed_transparent' ? 'png' : 'jpeg'};base64,${processedImages[step.image_key]}`} 
+                    alt={step.step}
+                    style={step.image_key === 'background_removed_transparent' ? { backgroundColor: '#f0f0f0' } : {}}
+                  />
+                  <p className="step-description">{step.description}</p>
+                </div>
+              ))}
+            </div>
+            {preprocessingSteps.length > 0 && (
+              <div className="steps-list">
+                <h3>Quality Assessment:</h3>
+                <ul>
+                  {preprocessingSteps.map((step, idx) => (
+                    <li key={idx}>{step}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         )}
       </main>
