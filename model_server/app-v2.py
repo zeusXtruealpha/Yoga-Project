@@ -201,15 +201,79 @@ def preprocess_and_validate(img):
         'image_key': 'resized'
     })
 
-    # Step 2: Noise reduction (NEW)
-    img_denoised = reduce_noise(img_resized)
-    processed_images['denoised'] = image_to_base64(img_denoised)
-    results.append("Noise reduction applied")
+    # Step 2: Noise reduction (NEW) if we have more noise in image.
+    # img_denoised = reduce_noise(img_resized)
+    # processed_images['denoised'] = image_to_base64(img_denoised)
+    # results.append("Noise reduction applied")
+    # step_details.append({
+    #     'step': 'Noise Reduction',
+    #     'description': 'Applied Gaussian blur (3x3) to reduce image noise',
+    #     'image_key': 'denoised'
+    # })
+
+        # Step 2: Noise Check + Conditional Noise Reduction
+    noise_check_result = check_noise(img_resized)
+    results.append(noise_check_result)
     step_details.append({
-        'step': 'Noise Reduction',
-        'description': 'Applied Gaussian blur (3x3) to reduce image noise',
-        'image_key': 'denoised'
+        'step': 'Noise Level Check (Pre)',
+        'description': noise_check_result,
+        'image_key': 'resized'
     })
+
+    if "High noise detected" in noise_check_result:
+        img_denoised = reduce_noise(img_resized)
+        processed_images['denoised'] = image_to_base64(img_denoised)
+        results.append("Noise reduction applied")
+        step_details.append({
+            'step': 'Noise Reduction',
+            'description': 'Applied Gaussian blur (3x3) due to high noise',
+            'image_key': 'denoised'
+        })
+    else:
+        img_denoised = img_resized  # keep original if noise acceptable
+        processed_images['denoised'] = image_to_base64(img_denoised)
+        results.append("Noise reduction not needed")
+        step_details.append({
+            'step': 'Noise Reduction',
+            'description': 'Noise levels acceptable, skipped noise reduction',
+            'image_key': 'denoised'
+        })
+    
+# perform these operations before removing background.
+    white_pixel_result = check_white_pixels(img_denoised)
+    results.append(white_pixel_result)
+    step_details.append({
+        'step': 'White Pixel Check',
+        'description': white_pixel_result,
+        'image_key': 'background_removed'
+    })
+
+    lighting_result = check_lighting(img_denoised)
+    results.append(lighting_result)
+    step_details.append({
+        'step': 'Lighting Check',
+        'description': lighting_result,
+        'image_key': 'background_removed'
+    })
+
+    blur_result = check_blur(img_denoised)
+    results.append(blur_result)
+    step_details.append({
+        'step': 'Blur Detection',
+        'description': blur_result,
+        'image_key': 'background_removed'
+    })
+
+    contrast_result = check_contrast(img_denoised)
+    results.append(contrast_result)
+    step_details.append({
+        'step': 'Contrast Check',
+        'description': contrast_result,
+        'image_key': 'background_removed'
+    })
+
+
+
 
     # Step 3: Background removal with GrabCut (NEW)
     img_no_bg = remove_background_grabcut(img_denoised)
@@ -242,45 +306,45 @@ def preprocess_and_validate(img):
     })
 
     # Step 4: Quality checks on processed image
-    noise_result = check_noise(img_no_bg)
-    results.append(noise_result)
-    step_details.append({
-        'step': 'Noise Level Check',
-        'description': noise_result,
-        'image_key': 'background_removed'
-    })
+    # noise_result = check_noise(img_no_bg)
+    # results.append(noise_result)
+    # step_details.append({
+    #     'step': 'Noise Level Check',
+    #     'description': noise_result,
+    #     'image_key': 'background_removed'
+    # })
 
-    white_pixel_result = check_white_pixels(img_no_bg)
-    results.append(white_pixel_result)
-    step_details.append({
-        'step': 'White Pixel Check',
-        'description': white_pixel_result,
-        'image_key': 'background_removed'
-    })
+    # white_pixel_result = check_white_pixels(img_no_bg)
+    # results.append(white_pixel_result)
+    # step_details.append({
+    #     'step': 'White Pixel Check',
+    #     'description': white_pixel_result,
+    #     'image_key': 'background_removed'
+    # })
 
-    lighting_result = check_lighting(img_no_bg)
-    results.append(lighting_result)
-    step_details.append({
-        'step': 'Lighting Check',
-        'description': lighting_result,
-        'image_key': 'background_removed'
-    })
+    # lighting_result = check_lighting(img_no_bg)
+    # results.append(lighting_result)
+    # step_details.append({
+    #     'step': 'Lighting Check',
+    #     'description': lighting_result,
+    #     'image_key': 'background_removed'
+    # })
 
-    blur_result = check_blur(img_no_bg)
-    results.append(blur_result)
-    step_details.append({
-        'step': 'Blur Detection',
-        'description': blur_result,
-        'image_key': 'background_removed'
-    })
+    # blur_result = check_blur(img_no_bg)
+    # results.append(blur_result)
+    # step_details.append({
+    #     'step': 'Blur Detection',
+    #     'description': blur_result,
+    #     'image_key': 'background_removed'
+    # })
 
-    contrast_result = check_contrast(img_no_bg)
-    results.append(contrast_result)
-    step_details.append({
-        'step': 'Contrast Check',
-        'description': contrast_result,
-        'image_key': 'background_removed'
-    })
+    # contrast_result = check_contrast(img_no_bg)
+    # results.append(contrast_result)
+    # step_details.append({
+    #     'step': 'Contrast Check',
+    #     'description': contrast_result,
+    #     'image_key': 'background_removed'
+    # })
 
     print(f"  [INFO {get_timestamp()}] Preprocessing and validation complete.")
     
@@ -307,10 +371,9 @@ class_labels = ["angry", "disgust", "fear", "happy", "sad", "surprise", "neutral
 
 try:
     if os.path.exists(MODEL_PATH):
-        # Try to load the model with custom objects
+        
         from tensorflow.keras.utils import custom_object_scope
-        # You might need to import your custom layers here
-        # For now, we'll handle the error gracefully
+        
         model = load_model(MODEL_PATH)
         print(f"[SETUP {get_timestamp()}] Emotion model loaded successfully")
     else:
